@@ -5,13 +5,13 @@
 #define backspace 0x08  // Mã cho phím backspace
 #define reset 0x11      // Mã cho phím reset
 #define dial 0x12       // Mã cho phím dial
-#define enter '#'        // Mã cho phím enter
-#define LED_PIN 2 
+#define enter '#'       // Mã cho phím enter
+#define LED_PIN 2
 
 int counter = 0;
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // Khởi tạo màn hình LCD
-const byte ROWS = 4;  // Số hàng của bàn phím
-const byte COLS = 4;  // Số cột của bàn phím
+const byte ROWS = 4;                 // Số hàng của bàn phím
+const byte COLS = 4;                 // Số cột của bàn phím
 char keys[ROWS][COLS] = {
   { 1, 2, 3, 4 },
   { 5, 6, 7, 8 },
@@ -24,13 +24,25 @@ byte colPins[COLS] = { 33, 32, 18, 19 };  // Chân kết nối cột
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);  // Khởi tạo bàn phím
 
 const char keyCharArray[16][5] PROGMEM = {
-  "1ABC", "2DEF", "3GHI", "\x11",
-  "4JKL", "5MNO", "6PQR", "\x12",
-  "7STU", "8VWX", "9YZ.", "\x08",
-  " ", "0", "#", "\x0A",
+  "1ABC",
+  "2DEF",
+  "3GHI",
+  "\x11",
+  "4JKL",
+  "5MNO",
+  "6PQR",
+  "\x12",
+  "7STU",
+  "8VWX",
+  "9YZ.",
+  "\x08",
+  " ",
+  "0",
+  "#",
+  "\x0A",
 };
 
-char finalText[80] = "";  // Mảng lưu trữ văn bản cuối cùng người dùng nhập
+char finalText[80] = "";    // Mảng lưu trữ văn bản cuối cùng người dùng nhập
 size_t finalTextIndex = 0;  // Chỉ số hiện tại trong mảng văn bản
 
 // Hàm chuyển đổi ký tự thành mã Morse
@@ -72,7 +84,7 @@ String morseCode(char c) {
     case '8': return "---..";
     case '9': return "----.";
     case '0': return "-----";
-    case ' ': return "/";
+    case ' ': return " ";
     default: return "";  // For unsupported characters
   }
 }
@@ -93,46 +105,47 @@ void setup() {
   lcd.clear();
   pinMode(LED_PIN, OUTPUT);
 }
+
 void loop() {
   char key = mygetKey();  // Lấy ký tự từ bàn phím
 
-  if (key == 0x08) { // Kiểm tra nếu phím backspace được nhấn
+  if (key == 0x08) {  // Kiểm tra nếu phím backspace được nhấn
     if (finalTextIndex > 0) {
-      finalTextIndex--;  // Giảm chỉ số xuống để xóa ký tự
+      finalTextIndex--;                  // Giảm chỉ số xuống để xóa ký tự
       finalText[finalTextIndex] = '\0';  // Xóa ký tự cuối cùng
 
-      lcd.clear();                      
-      lcd.setCursor(0, 0);              
+      lcd.clear();
+      lcd.setCursor(0, 0);
       lcd.print("Text:");
-      lcd.setCursor(0, 1);              
-      lcd.print(finalText);              
+      lcd.setCursor(0, 1);
+      lcd.print(finalText);
 
-      Serial.println(finalText);        
+      Serial.println(finalText);
     }
   } else if (key != '\0' && key != enter) {
-    finalText[finalTextIndex] = key;  
-    finalTextIndex++;  
+    finalText[finalTextIndex] = key;
+    finalTextIndex++;
     if (finalTextIndex >= sizeof(finalText)) {
-      finalTextIndex = sizeof(finalText) - 1;  
+      finalTextIndex = sizeof(finalText) - 1;
     }
-    finalText[finalTextIndex] = '\0';  
+    finalText[finalTextIndex] = '\0';
 
-    lcd.clear();                      
-    lcd.setCursor(0, 0);              
-    lcd.print("Text:");
-    lcd.setCursor(0, 1);              
-    lcd.print(finalText);              
-
-    Serial.println(finalText);        
-  } else if (key == enter) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Morse:");
+    lcd.print("Text:");
     lcd.setCursor(0, 1);
+    lcd.print(finalText);
+
+    Serial.println(finalText);
+  } else if (key == enter) {
+    // lcd.clear();
+    // lcd.setCursor(0, 0);
+    // lcd.print("Morse:");
+    // lcd.setCursor(0, 1);
     String morse = convertToMorse(finalText);
-    lcd.print(morse);
+    // lcd.print(morse);
     Serial.println(morse);
-    blinkMorseCode(morse); // Gọi hàm nhấp nháy LED
+    blinkMorseCode(morse);  // Gọi hàm nhấp nháy LED
     finalTextIndex = 0;
     finalText[0] = '\0';
   }
@@ -192,19 +205,19 @@ void blinkMorseCode(const String& code) {
     switch (code[i]) {
       case '.':
         digitalWrite(LED_PIN, HIGH);
-        delay(250); // Dấu chấm
+        delay(250);  // Dấu chấm
         digitalWrite(LED_PIN, LOW);
         break;
       case '-':
         digitalWrite(LED_PIN, HIGH);
-        delay(750); // Dấu gạch ngang
+        delay(750);  // Dấu gạch ngang
         digitalWrite(LED_PIN, LOW);
         break;
       case ' ':
-        delay(250); // Nghỉ giữa các ký tự
+        delay(1000);
         break;
     }
-    delay(250); // Nghỉ giữa các dấu
+    delay(250);
   }
-  delay(2000); // Nghỉ giữa các lần nhấp nháy
+  delay(5000);
 }
